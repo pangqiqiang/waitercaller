@@ -3,6 +3,7 @@ from flask import render_template
 from flask_login import LoginManager
 from flask_login import login_required
 from flask_login import login_user
+from flask_login import logout_user
 from flask import url_for
 from flask import redirect
 from flask import request
@@ -40,11 +41,18 @@ def login():
     return home()
 
 
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
+
+
 @login_manager.user_loader
 def load_user(user_id):
     user_password = DB.get_user(user_id)
     if user_password:
         return User(user_id)
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
