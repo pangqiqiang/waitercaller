@@ -46,6 +46,5 @@ def load_user(user_id):
     if user_password:
         return User(user_id)
 
-
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
