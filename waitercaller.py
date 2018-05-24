@@ -37,7 +37,7 @@ def register():
     pw1 = request.form.get("pw1")
     pw2 = request.form.get("pw2")
     if not pw1 == pw2:
-        return redirect(usr_for("home"))
+        return redirect(url_for("home"))
     if DB.get_user(email):
         return redirect(url_for("home"))
     salt = PH.get_salt()
