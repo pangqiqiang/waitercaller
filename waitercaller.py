@@ -8,7 +8,6 @@ from flask_login import current_user
 from flask import url_for
 from flask import redirect
 from flask import request
-from mockdbhelper import MockDBHelper as DBHelper
 from passwordhelper import PasswordHelper
 from bitlyhelper import BitlyHelper
 from forms import CreateTableForm
@@ -16,6 +15,10 @@ from forms import RegistrationForm
 from forms import LoginForm
 from user import User
 import config
+if config.test:
+    from mockdbhelper import MockDBHelper as DBHelper
+else:
+    from dbhelper import DBHelper
 import datetime
 
 
@@ -37,8 +40,8 @@ def home():
 @login_required
 def account():
     tables = DB.get_tables(current_user.get_id())
-    return render_template("account.html", 
-        createtableform=CreateTableForm(), tables=tables)
+    return render_template("account.html",
+                           createtableform=CreateTableForm(), tables=tables)
 
 
 @app.route("/account/createtable", methods=["POST"])
@@ -47,12 +50,13 @@ def account_createtable():
     form = CreateTableForm(request.form)
     if form.validate():
         tableid = DB.add_table(form.tablenumber.data,
-            current_user.get_id())
-        new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid)
+                               current_user.get_id())
+        new_url = BH.shorten_url(
+            config.base_url + "newrequest/" + str(tableid))
         DB.update_table(tableid, new_url)
         return redirect(url_for('account'))
     return render_template("account.html", createtableform=form,
-        tables=DB.get_tables(current_user.get_id()))
+                           tables=DB.get_tables(current_user.get_id()))
 
 
 @app.route("/account/deletetable", methods=["POST", "GET"])
@@ -122,8 +126,9 @@ def dashboard_resolve():
 
 @app.route("/newrequest/<tid>")
 def newRequest(tid):
-    DB.add_request(tid, datetime.datetime.now())
-    return "Your request has been logged and a waiter will be with you shortly"
+    if DB.add_request(tid, datetime.datetime.now()):
+        return 'Your request has been logged and a  waiter will be with you shortly'
+    return 'There is already a request pending for this table. Please be patient, a waiter will be there ASAP'
 
 
 @login_manager.user_loader
